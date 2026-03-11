@@ -144,7 +144,7 @@ def analyze_pdf(pdf_path: str, tipo_formato: str = "estandar"):
         pdf_bytes = f.read()
 
     response = client.models.generate_content(
-        model="gemini-1.5-flash",
+        model="gemini-2.5-flash",
         contents=[
             prompt,
             types.Part.from_bytes(
