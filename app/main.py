@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 import shutil
 import os
 import time
@@ -32,7 +32,7 @@ app.add_middleware(
 
 
 @app.post("/analyze")
-async def analyze_file(file: UploadFile = File(...), tipo_formato: str = "estandar"):
+async def analyze_file(file: UploadFile = File(...), tipo_formato: str = Form("estandar")):
     start_time = time.time()
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     pdf_path = None
@@ -65,16 +65,15 @@ async def analyze_file(file: UploadFile = File(...), tipo_formato: str = "estand
         pdf_path = docx_to_pdf(file_path, PDF_FOLDER)
 
         """ Analizar el PDF con Gemini según el tipo de formato """
-        analysis_data = analyze_pdf(pdf_path, tipo_formato)
+        analysis_data = analyze_pdf(pdf_path, tipo_formato, file.filename)
 
         """ Calcular tiempo de procesamiento """
         end_time = time.time()
         processing_time = round(end_time - start_time, 2)
 
-        """ Agregar el nombre del archivo y tiempo a la respuesta """
+        """ Agregar el tiempo a la respuesta """
         response = {
-            "nombre_archivo": file.filename,
-            "tiempo_procesamiento_backend": processing_time,
+            "tiempo_procesamiento": processing_time,
             **analysis_data
         }
 

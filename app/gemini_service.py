@@ -10,133 +10,93 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
-def analyze_pdf(pdf_path: str, tipo_formato: str = "estandar"):
+def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo: str = ""):
     """
-    Analiza un documento PDF usando Gemini, extrayendo información estructurada y validando formato
+    Analiza un documento PDF usando Gemini, extrayendo información de calidad
     
     Args:
         pdf_path: Ruta al archivo PDF
-        tipo_formato: Tipo de formato del documento (estandar, tecnico, funcional, cliente)
+        tipo_formato: Tipo de formato del documento
+        nombre_archivo: Nombre del archivo adjuntado
     """
     
     # Configuración de logos según el tipo de formato
     logos_config = {
-        "estandar": {
-            "logos_requeridos": ["Logo de la compañía"],
-            "descripcion": "Formato estándar con logo de la compañía"
+        "corona": {
+            "logos_requeridos": ["Logo New Inntech", "Logo Corona"]
         },
-        "tecnico": {
-            "logos_requeridos": ["Logo de la compañía", "Logo técnico"],
-            "descripcion": "Formato técnico con logos de compañía y técnico"
+        "linea_directa": {
+            "logos_requeridos": ["Logo New Inntech", "Logo Línea Directa"]
         },
-        "funcional": {
-            "logos_requeridos": ["Logo de la compañía", "Logo funcional"],
-            "descripcion": "Formato funcional con logos de compañía y funcional"
+        "new_inntech": {
+            "logos_requeridos": ["Logo New Inntech"]
         },
-        "cliente": {
-            "logos_requeridos": ["Logo de la compañía", "Logo del cliente"],
-            "descripcion": "Formato para cliente con logos de compañía y cliente"
+        "novaventa": {
+            "logos_requeridos": ["Logo New Inntech", "Logo Netw", "Logo Novaventa", "Logo Nutresa"]
+        },
+        "nutresa_netw": {
+            "logos_requeridos": ["Logo New Inntech", "Logo Netw", "Logo Nutresa"]
+        },
+        "nutresa_proyectos": {
+            "logos_requeridos": ["Logo New Inntech", "Logo Nutresa"]
+        },
+        "web_back": {
+            "logos_requeridos": ["Logo New Inntech"]
+        },
+        "web_front": {
+            "logos_requeridos": ["Logo New Inntech"]
         }
     }
     
-    config = logos_config.get(tipo_formato, logos_config["estandar"])
+    config = logos_config.get(tipo_formato, logos_config["new_inntech"])
     logos_requeridos_str = ", ".join(config["logos_requeridos"])
     
     prompt = f"""
-    Analiza el siguiente documento PDF y valida tanto el formato como el contenido según las siguientes reglas.
+    Analiza el siguiente documento PDF de acuerdo a los estándares de calidad de New Inntech.
 
     TIPO DE FORMATO: {tipo_formato.upper()}
     LOGOS REQUERIDOS EN EL ENCABEZADO: {logos_requeridos_str}
 
-    VALIDACIONES DE FORMATO:
-    1. La letra debe ser Calibri 12 y color negro en todo el contenido (excepto encabezado)
-    2. La tabla de contenido debe tener mínimo una hoja propia, sin negrita, sin puntos, y las páginas deben ser coherentes
-    3. La tabla de datos generales de desarrollo debe estar llena (excepto el campo "código" que es opcional)
-    4. Si la tabla de condiciones para su uso no está vacía, debe tener márgenes
-    5. El encabezado debe contener los logos requeridos: {logos_requeridos_str}
-    
-    VALIDACIONES DE CONTENIDO:
-    1. Los cambios deben estar documentados separados en front y back
-    2. La información debe ser concisa, técnica y funcional
-    3. No debe haber espacios en blanco de más de media página (excepto después de portada o tabla de contenido)
-    4. El código no debe tener modificaciones en espacios, acentuación u ortografía
+    ESTÁNDARES DE CALIDAD A VALIDAR:
+    1. Formato: Letra Calibri 12, color negro en contenido (excepto encabezado), en los bloques de código no importa el color de la letra ni tipo o tamaño
+    2. Tabla de contenido: Mínimo una hoja propia, sin negrita(Solo en el titulo "Contenido"), sin puntos, páginas coherentes
+    3. Tabla de datos generales: Debe estar completa (excepto campo "código" que es opcional)
+    4. Tabla de condiciones de uso: Si no está vacía, debe tener márgenes(Tener excesiva atención a esto)
+    5. Encabezado: Debe contener los logos requeridos: {logos_requeridos_str}
+    6. Contenido: Información concisa, técnica y funcional
+    7. Espacios: No más de media página de espacios en blanco (excepto después de portada, tabla de contenido y ultima página)
+    8. Código: No importa ningún tipo de falla ortografica
 
     Debes responder ÚNICAMENTE con un objeto JSON válido con esta estructura exacta:
     {{
+        "nombre_archivo": "{nombre_archivo}",
         "proyecto": "nombre del proyecto",
-        "lider": "nombre del líder del proyecto",
+        "lider": "nombre del líder",
         "compania": "nombre de la compañía",
-        "tipo_ejecucion": "tipo de ejecución del proyecto",
-        "tipo_formato_detectado": "{tipo_formato}",
-        "resumen": "resumen claro y conciso del contenido del documento",
-        "puntos_principales": ["punto 1", "punto 2", "punto 3"],
-        "validaciones_formato": {{
-            "letra_calibri_12": {{
-                "cumple": true/false,
-                "observaciones": "descripción del problema si no cumple"
-            }},
-            "tabla_contenido": {{
-                "cumple": true/false,
-                "observaciones": "descripción del problema si no cumple"
-            }},
-            "tabla_datos_generales": {{
-                "cumple": true/false,
-                "observaciones": "descripción del problema si no cumple"
-            }},
-            "tabla_condiciones_uso": {{
-                "cumple": true/false,
-                "observaciones": "descripción del problema si no cumple"
-            }},
-            "logos_encabezado": {{
-                "cumple": true/false,
-                "logos_encontrados": ["lista de logos encontrados en el encabezado"],
-                "logos_requeridos": {json.dumps(config["logos_requeridos"])},
-                "observaciones": "descripción de qué logos faltan o están incorrectos"
-            }}
-        }},
-        "validaciones_contenido": {{
-            "cambios_documentados": {{
-                "cumple": true/false,
-                "observaciones": "descripción del problema si no cumple"
-            }},
-            "informacion_concisa": {{
-                "cumple": true/false,
-                "observaciones": "descripción del problema si no cumple"
-            }},
-            "espacios_excesivos": {{
-                "cumple": true/false,
-                "observaciones": "páginas con espacios excesivos si no cumple"
-            }},
-            "codigo_sin_modificar": {{
-                "cumple": true/false,
-                "observaciones": "descripción del problema si no cumple"
-            }}
-        }},
-        "imagenes": [
+        "tipo_ejecucion": "tipo de ejecución",
+        "porcentaje_aprobacion": 85,
+        "fragmentos_mejora": [
             {{
                 "pagina": 1,
-                "descripcion": "descripción de la imagen"
+                "fragmento": "texto exacto del documento donde se necesita mejora",
+                "recomendacion": "descripción específica de cómo mejorar este fragmento"
             }}
         ],
-        "informacion_detallada": [
+        "indicadores_faltantes": [
             {{
-                "pagina": 1,
-                "contenido": "información importante encontrada"
+                "aspecto": "nombre del aspecto faltante",
+                "descripcion": "descripción de qué información hace falta",
+                "impacto": "impacto en la calidad del documento"
             }}
-        ],
-        "cumplimiento_general": {{
-            "porcentaje": 85,
-            "estado": "Aprobado/Rechazado/Requiere correcciones"
-        }}
+        ]
     }}
 
-    INSTRUCCIONES:
-    - Si no encuentras algún campo de información básica, usa "No especificado"
-    - Para la validación de logos, revisa el ENCABEZADO del documento y lista todos los logos que encuentres
-    - Compara los logos encontrados con los requeridos: {logos_requeridos_str}
-    - Para cada validación, indica si cumple (true/false) y proporciona observaciones detalladas
-    - El porcentaje de cumplimiento es el promedio de todas las validaciones que cumplen
-    - El estado es "Aprobado" si cumple >= 90%, "Requiere correcciones" si >= 70%, "Rechazado" si < 70%
+    INSTRUCCIONES CRÍTICAS:
+    - El porcentaje_aprobacion debe ser un número entre 0 y 100
+    - Para fragmentos_mejora: extrae TEXTO EXACTO del documento, no parafrasees
+    - Incluye solo fragmentos donde REALMENTE se necesite mejora
+    - Para indicadores_faltantes: identifica qué información del estándar de calidad NO está en el documento y NO LO PONGAS si de verdad mo está incumplido
+    - Si no encuentras algún campo de información básica, usa "No especificado" Que falte el lider o la compañía no es un error crítico
     - Responde SOLO con el JSON, sin texto adicional antes o después
     """
 
@@ -172,35 +132,12 @@ def analyze_pdf(pdf_path: str, tipo_formato: str = "estandar"):
     except json.JSONDecodeError:
         # Si falla el parsing, devolver estructura básica
         return {
+            "nombre_archivo": "No especificado",
             "proyecto": "No especificado",
             "lider": "No especificado",
             "compania": "No especificado",
             "tipo_ejecucion": "No especificado",
-            "tipo_formato_detectado": tipo_formato,
-            "resumen": "Error al procesar el documento",
-            "puntos_principales": [],
-            "validaciones_formato": {
-                "letra_calibri_12": {"cumple": False, "observaciones": "No se pudo validar"},
-                "tabla_contenido": {"cumple": False, "observaciones": "No se pudo validar"},
-                "tabla_datos_generales": {"cumple": False, "observaciones": "No se pudo validar"},
-                "tabla_condiciones_uso": {"cumple": False, "observaciones": "No se pudo validar"},
-                "logos_encabezado": {
-                    "cumple": False, 
-                    "logos_encontrados": [],
-                    "logos_requeridos": config["logos_requeridos"],
-                    "observaciones": "No se pudo validar"
-                }
-            },
-            "validaciones_contenido": {
-                "cambios_documentados": {"cumple": False, "observaciones": "No se pudo validar"},
-                "informacion_concisa": {"cumple": False, "observaciones": "No se pudo validar"},
-                "espacios_excesivos": {"cumple": False, "observaciones": "No se pudo validar"},
-                "codigo_sin_modificar": {"cumple": False, "observaciones": "No se pudo validar"}
-            },
-            "imagenes": [],
-            "informacion_detallada": [],
-            "cumplimiento_general": {
-                "porcentaje": 0,
-                "estado": "Error en validación"
-            }
+            "porcentaje_aprobacion": 0,
+            "fragmentos_mejora": [],
+            "indicadores_faltantes": []
         }
