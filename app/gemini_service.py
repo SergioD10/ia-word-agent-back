@@ -10,7 +10,7 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
-def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo: str = ""):
+def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo: str = "") -> dict:
     """
     Analiza un documento PDF usando Gemini, extrayendo información de calidad
     
@@ -18,38 +18,25 @@ def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo
         pdf_path: Ruta al archivo PDF
         tipo_formato: Tipo de formato del documento
         nombre_archivo: Nombre del archivo adjuntado
+    
+    Returns:
+        dict: Análisis del documento con estructura JSON validada
     """
     
     # Configuración de logos según el tipo de formato
-    logos_config = {
-        "corona": {
-            "logos_requeridos": ["Logo New Inntech", "Logo Corona"]
-        },
-        "linea_directa": {
-            "logos_requeridos": ["Logo New Inntech", "Logo Línea Directa"]
-        },
-        "new_inntech": {
-            "logos_requeridos": ["Logo New Inntech"]
-        },
-        "novaventa": {
-            "logos_requeridos": ["Logo New Inntech", "Logo Netw", "Logo Novaventa", "Logo Nutresa"]
-        },
-        "nutresa_netw": {
-            "logos_requeridos": ["Logo New Inntech", "Logo Netw", "Logo Nutresa"]
-        },
-        "nutresa_proyectos": {
-            "logos_requeridos": ["Logo New Inntech", "Logo Nutresa"]
-        },
-        "web_back": {
-            "logos_requeridos": ["Logo New Inntech"]
-        },
-        "web_front": {
-            "logos_requeridos": ["Logo New Inntech"]
-        }
+    LOGOS_CONFIG: dict = {
+        "corona": {"logos_requeridos": ["Logo New Inntech", "Logo Corona"]},
+        "linea_directa": {"logos_requeridos": ["Logo New Inntech", "Logo Línea Directa"]},
+        "new_inntech": {"logos_requeridos": ["Logo New Inntech"]},
+        "novaventa": {"logos_requeridos": ["Logo New Inntech", "Logo Netw", "Logo Novaventa", "Logo Nutresa"]},
+        "nutresa_netw": {"logos_requeridos": ["Logo New Inntech", "Logo Netw", "Logo Nutresa"]},
+        "nutresa_proyectos": {"logos_requeridos": ["Logo New Inntech", "Logo Nutresa"]},
+        "web_back": {"logos_requeridos": ["Logo New Inntech"]},
+        "web_front": {"logos_requeridos": ["Logo New Inntech"]}
     }
     
-    config = logos_config.get(tipo_formato, logos_config["new_inntech"])
-    logos_requeridos_str = ", ".join(config["logos_requeridos"])
+    config: dict = LOGOS_CONFIG.get(tipo_formato, LOGOS_CONFIG["new_inntech"])
+    logos_requeridos_str: str = ", ".join(config["logos_requeridos"])
     
     prompt = f"""
     Analiza el siguiente documento PDF de acuerdo a los estándares de calidad de New Inntech.
@@ -101,7 +88,7 @@ def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo
     """
 
     with open(pdf_path, "rb") as f:
-        pdf_bytes = f.read()
+        pdf_bytes: bytes = f.read()
 
     response = client.models.generate_content(
         model="gemini-2.5-flash",
@@ -115,7 +102,7 @@ def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo
     )
 
     # Extraer JSON de la respuesta
-    response_text = response.text.strip()
+    response_text: str = response.text.strip()
     
     # Intentar extraer JSON si viene con markdown
     if "```json" in response_text:
@@ -128,10 +115,11 @@ def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo
             response_text = json_match.group(1)
     
     try:
-        return json.loads(response_text)
+        analysis_result: dict = json.loads(response_text)
+        return analysis_result
     except json.JSONDecodeError:
         # Si falla el parsing, devolver estructura básica
-        return {
+        default_response: dict = {
             "nombre_archivo": "No especificado",
             "proyecto": "No especificado",
             "lider": "No especificado",
@@ -141,3 +129,4 @@ def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo
             "fragmentos_mejora": [],
             "indicadores_faltantes": []
         }
+        return default_response

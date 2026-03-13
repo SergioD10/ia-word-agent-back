@@ -32,14 +32,14 @@ app.add_middleware(
 
 
 @app.post("/analyze")
-async def analyze_file(file: UploadFile = File(...), tipo_formato: str = Form("estandar")):
-    start_time = time.time()
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    pdf_path = None
+async def analyze_file(file: UploadFile = File(...), tipo_formato: str = Form("new_inntech")) -> dict:
+    start_time: float = time.time()
+    file_path: str = os.path.join(UPLOAD_FOLDER, file.filename)
+    pdf_path: str | None = None
 
     try:
         # Validar extensión del archivo
-        file_extension = os.path.splitext(file.filename)[1].lower()
+        file_extension: str = os.path.splitext(file.filename)[1].lower()
         if file_extension not in ALLOWED_EXTENSIONS:
             raise HTTPException(
                 status_code=400, 
@@ -48,7 +48,7 @@ async def analyze_file(file: UploadFile = File(...), tipo_formato: str = Form("e
 
         # Validar tamaño del archivo
         file.file.seek(0, 2)  # Ir al final del archivo
-        file_size = file.file.tell()  # Obtener tamaño
+        file_size: int = file.file.tell()  # Obtener tamaño
         file.file.seek(0)  # Volver al inicio
         
         if file_size > MAX_FILE_SIZE:
@@ -65,14 +65,14 @@ async def analyze_file(file: UploadFile = File(...), tipo_formato: str = Form("e
         pdf_path = docx_to_pdf(file_path, PDF_FOLDER)
 
         """ Analizar el PDF con Gemini según el tipo de formato """
-        analysis_data = analyze_pdf(pdf_path, tipo_formato, file.filename)
+        analysis_data: dict = analyze_pdf(pdf_path, tipo_formato, file.filename)
 
         """ Calcular tiempo de procesamiento """
-        end_time = time.time()
-        processing_time = round(end_time - start_time, 2)
+        end_time: float = time.time()
+        processing_time: float = round(end_time - start_time, 2)
 
         """ Agregar el tiempo a la respuesta """
-        response = {
+        response: dict = {
             "tiempo_procesamiento": processing_time,
             **analysis_data
         }
@@ -88,5 +88,5 @@ async def analyze_file(file: UploadFile = File(...), tipo_formato: str = Form("e
 
 
 @app.get("/")
-def root():
+def root() -> dict:
     return {"message": "API funcionando"}
