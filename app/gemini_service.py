@@ -48,8 +48,8 @@ def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo
     1. Formato: Letra Calibri 12, color negro en contenido (excepto encabezado), en los bloques de código no importa el color de la letra ni tipo o tamaño
     3. Tabla de datos generales: Debe estar completa (excepto campo "código" que es opcional) en los titulos debe tener negrita, la fecha es diferente a la del encabezado porque la del encabezado es la de creación del formato, no de la documentación, el contenido de cada titulo está debajo de él, en la tabla de datos del responsable está lateral
     2. Tabla de contenido: Mínimo una hoja propia, sin negrita(Solo en el titulo "Contenido"), sin puntos, páginas coherentes
-    4. Tabla de condiciones de uso: Si no está vacía, debe tener todos los bordes(Tener excesiva atención a esto)
-    5. Encabezado: Debe contener los logos requeridos: {logos_requeridos_str}
+    4. Tabla de condiciones de uso: Puede estar vacía y si lo está no debe tener bordes, pero si no está vacía, debe tener todos los bordes, no hay bordes internos entre condiciones
+    5. Encabezado: Debe contener los logos requeridos: {logos_requeridos_str}  y ninguno más
     6. Contenido: Información concisa, técnica y funcional
     7. Espacios: No más de media página de espacios en blanco de seguido (excepto después de portada, tabla de contenido y ultima página) no des recomendaciones al respecto si no se incumple
     8. Código: No importa ningún tipo de falla ortografica
