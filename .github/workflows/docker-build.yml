@@ -2,14 +2,14 @@ name: backend-docker
 
 on:
   push:
-    branches: [master, develop]
+    branches: [master]
     paths:
       - 'Dockerfile'
       - 'requirements.txt'
       - 'app/**'
       - '.github/workflows/docker-build.yml'
   pull_request:
-    branches: [master, develop]
+    branches: [master]
     paths:
       - 'Dockerfile'
       - 'requirements.txt'
