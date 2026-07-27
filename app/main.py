@@ -21,10 +21,16 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(PDF_FOLDER, exist_ok=True)
 
 app = FastAPI()
+cors_origins_raw: str = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:4200,http://localhost"
+)
+cors_origins: list[str] = [origin.strip() for origin in cors_origins_raw.split(",") if origin.strip()]
+
 """Autorización al front de enviar información a la API"""
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

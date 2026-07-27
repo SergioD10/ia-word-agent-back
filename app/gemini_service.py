@@ -53,6 +53,7 @@ def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo
     6. Contenido: Información concisa, técnica y funcional
     7. Espacios: No más de media página de espacios en blanco de seguido (excepto después de portada, tabla de contenido y ultima página) no des recomendaciones al respecto si no se incumple
     8. Código: No importa ningún tipo de falla ortografica
+    9. Si el encabezado contiene: DOCUMENTACIÓN TÉCNICA PARA SOLUCIONES WEB BACK o DOCUMENTACIÓN TÉCNICA PARA SOLUCIONES WEB FRONT no necesita ni tabla de condiciones de uso ni descripción de desarrollo, ni información general, solo la tabla de datos del responsable y la tabla de contenido puede estar en la primera página
 
     Debes responder ÚNICAMENTE con un objeto JSON válido con esta estructura exacta:
     {{
@@ -91,7 +92,7 @@ def analyze_pdf(pdf_path: str, tipo_formato: str = "new_inntech", nombre_archivo
         pdf_bytes: bytes = f.read()
 
     response = client.models.generate_content(
-        model="gemini-3-flash-preview",
+        model="gemini-3.1-flash-lite-preview",
         contents=[
             prompt,
             types.Part.from_bytes(

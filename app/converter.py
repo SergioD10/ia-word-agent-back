@@ -1,5 +1,5 @@
-from docx2pdf import convert
 import os
+import subprocess
 
 """Función encargada de convertir los archivos docx a pdf"""
 def docx_to_pdf(input_path: str, output_dir: str = "pdfs") -> str:
@@ -18,6 +18,29 @@ def docx_to_pdf(input_path: str, output_dir: str = "pdfs") -> str:
     filename: str = os.path.splitext(os.path.basename(input_path))[0]
     pdf_path: str = os.path.join(output_dir, filename + ".pdf")
 
-    convert(input_path, pdf_path)
+    if os.name == "nt":
+        from docx2pdf import convert
+        convert(input_path, pdf_path)
+    else:
+        result = subprocess.run(
+            [
+                "soffice",
+                "--headless",
+                "--convert-to",
+                "pdf",
+                "--outdir",
+                output_dir,
+                input_path,
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if result.returncode != 0 or not os.path.exists(pdf_path):
+            raise RuntimeError(
+                "No fue posible convertir el archivo DOCX a PDF con LibreOffice. "
+                f"Salida: {result.stdout} | Error: {result.stderr}"
+            )
 
     return pdf_path
