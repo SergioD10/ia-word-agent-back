@@ -2,14 +2,14 @@ name: backend-ci
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master, develop]
     paths:
       - 'app/**'
       - 'requirements.txt'
       - 'Dockerfile'
       - '.github/workflows/ci.yml'
   pull_request:
-    branches: [main, develop]
+    branches: [master, develop]
     paths:
       - 'app/**'
       - 'requirements.txt'
